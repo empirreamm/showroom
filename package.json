@@ -1,0 +1,18 @@
+{
+  "name": "buildingshowcase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon pnpm index.js"
+  },
+  "keywords": [],
+  "author": "SIOrbita",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

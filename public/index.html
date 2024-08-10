@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Showroom</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .sr-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    show-room {
+      display: block;
+      max-width: 100dvw;
+      max-height: 100dvh;
+    }
+  </style>
+</head>
+
+<body>
+
+  <show-room></show-room>
+  <!-- <show-room-editor></show-room-editor> -->
+  <script type="module">
+    import '/elements/show-room.js'
+    import '/elements/show-room-editor.js'
+
+    const data = await fetch("/data.sr").then(r => r.text())
+    // const sre = document.querySelector('show-room-editor')
+    const sr = document.querySelector('show-room')
+    // sre.data = data
+    sr.data = data
+
+    // sre.addEventListener('save', async (e) => {
+    //   console.log(e.detail)
+    //   await fetch("/save", {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     },
+    //     body: JSON.stringify({
+    //       data: e.detail
+    //     })
+    //   })
+    //   sr.data = e.detail
+    // })
+
+  </script>
+</body>
+
+</html>
