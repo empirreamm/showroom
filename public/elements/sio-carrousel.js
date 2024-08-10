@@ -85,7 +85,6 @@ class SioCarrousel extends SioElement {
   }
   propertyChanged(name, oldValue, newValue) {
     if (name === "stringdata") {
-      console.log("setting string data", newValue)
       this.items = newValue ? newValue.split("|") : []
       this.current = 0
       this.requestUpdate()
@@ -111,7 +110,6 @@ class SioCarrousel extends SioElement {
     `)
   }
   render() {
-    console.log("rendering carrousel", this.items)
     return this.html`
       <div class="carrousel">
         <div class="current">

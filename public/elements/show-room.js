@@ -107,6 +107,7 @@ class Layer {
     this.infoDiv = div
   }
   createInfoDialog() {
+    if (this.mouseAction !== "showInfo") return
     const dialog = document.createElement("sio-dialog")
     dialog.style.borderRadius = "8px"
     dialog.classList.add("infoDialog")
@@ -569,7 +570,6 @@ class Layer {
       this.emit("hide")
       const alpha = this.getPositionAlpha(x, y)
       if (alpha === 0) return
-      console.log(this)
       this.emit("toggleScene", this.mouseActionScene)
       return
     }
@@ -644,6 +644,53 @@ class ShowRoom extends SioElement {
       width: 100%;
       height: 100%;
     }
+    .zoom-container{
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+      display:flex;
+      flex-direction: column;
+    }
+    .zoom-container svg{
+      background-color: white;
+      border-bottom: 1px solid black;
+      cursor: pointer;
+      user-select: none;
+    }
+    .zoom-container svg:hover{
+      background-color: #f0f0f0;
+    }
+    .backButton {
+      display: none;
+      position: absolute;
+      top: 16px;
+      right: 48px;
+      box-shadow: rgba(0, 0, 0, 0.7) 0px 14px 14px -14px;
+      filter: brightness(110%);
+      background-color: #99C08C;
+      color: white;
+      stroke: white;
+      --icon-color: white;
+      justify-content: center;
+      align-items: center;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .backButton:hover {
+      filter: brightness(120%);
+      box-shadow: rgba(0, 0, 0, 0.7) 0px 7px 7px -7px;
+    }
+    :host([back]) .backButton {
+      display: flex;
+      padding: 8px;
+      gap: 8px;
+
+    }
+
   `
   constructor() {
     super()
@@ -725,7 +772,9 @@ class ShowRoom extends SioElement {
   }
   _onPointerDown(e) {
     if (!this.currentScene) return
-    this.mousePositionToCanvas(e.clientX, e.clientY)
+    const eventX = e.clientX || e.touches[0].clientX
+    const eventY = e.clientY || e.touches[0].clientY
+    this.mousePositionToCanvas(eventX, eventY)
     e.stopPropagation()
     if (this.onAnimation) return
     this.drag = { ...this.mouse }
@@ -735,7 +784,10 @@ class ShowRoom extends SioElement {
     if (!this.currentScene) return
     e.stopPropagation()
     if (this.onAnimation) return
-    this.mousePositionToCanvas(e.clientX, e.clientY)
+    const eventX = e.clientX || e.touches[0].clientX
+    const eventY = e.clientY || e.touches[0].clientY
+    console.log(eventX, eventY)
+    this.mousePositionToCanvas(eventX, eventY)
     if (!this.drag) {
       const worldPosition = this.screenToWorld(this.mouse.x, this.mouse.y)
       this.currentScene.mouseMove(worldPosition.x, worldPosition.y)
@@ -749,7 +801,9 @@ class ShowRoom extends SioElement {
   }
   _onPointerUp(e) {
     if (!this.currentScene) return
-    this.mousePositionToCanvas(e.clientX, e.clientY)
+    const eventX = e.clientX || e.changedTouches[0].clientX
+    const eventY = e.clientY || e.changedTouches[0].clientY
+    this.mousePositionToCanvas(eventX, eventY)
     e.stopPropagation()
     e.stopPropagation()
     if (this.onAnimation) return
@@ -810,16 +864,32 @@ class ShowRoom extends SioElement {
         this.emit("hit", s, layer)
       })
       s.on("toggleScene", scene => {
-        console.log(this.scenes)
-        const newScene = this.scenes.find(s => s.id === scene)
-        if (!newScene) return
-        this.currentScene = newScene
-        this.centerScene()
+        this.openScene(scene)
       })
       return s
     })
     this.currentScene = this.scenes[0]
   }
+
+  backScene() {
+    if (!this.currentScene) return
+    if (!this.currentScene.back) return
+    this.openScene(this.currentScene.back)
+  }
+  openScene(scene) {
+    this.currentScene.mouseMove(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY)
+    const newScene = this.scenes.find(s => s.id === scene)
+    if (!newScene) return
+    this.currentScene = newScene
+    console.log("toggleScene", newScene)
+    if (newScene.back) {
+      this.setAttribute("back", true)
+    } else {
+      this.removeAttribute("back")
+    }
+    this.centerScene()
+  }
+
   centerScene() {
     // if (!this.currentScene) return requestAnimationFrame(() => this.centerScene())
     // this.camera = { x: -1 * this.currentScene.canvas.width / 2, y: -1 * this.currentScene.canvas.height / 2 }
@@ -869,18 +939,44 @@ class ShowRoom extends SioElement {
     this.ctx.clearRect(sceneCanvas.width * -1, sceneCanvas.height * -1, sceneCanvas.width, sceneCanvas.height)
     this.ctx.scale(this.zoom, this.zoom)
     this.ctx.drawImage(sceneCanvas, 0, 0)
-    // setTimeout(() => {
-    //   this.animate()
-    // }, 1000)
     requestAnimationFrame(() => this.animate())
   }
   firstRendered() {
     this.animate()
     this.centerScene()
   }
+  zoomIn() {
+    this.zoom += .1
+    if (this.zoom > 1.5) this.zoom = 1.5
+  }
+  zoomOut() {
+    this.zoom -= .1
+    if (this.zoom < .5) this.zoom = .5
+  }
+  renderZoom() {
+    return this.html`
+      <div class="zoom-container">
+        <svg @click=${this.zoomIn.bind(this)} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 12H18" stroke="#444341" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18L12 6" stroke="#444341" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <svg @click=${this.zoomOut.bind(this)} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 12H18" stroke="#444341" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      </div>
+    `
+  }
+  renderBack() {
+    return this.html`
+      <div class="backButton" @click=${this.backScene.bind(this)}>
+        <svg class="icon" data-src="/icons/arrow_left.svg" width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg" data-id="svg-loader_35">
+          <path d="M19 12.75L5 12.75" stroke="var(--icon-color, #000)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M12 19.75L5 12.75L12 5.75" stroke="var(--icon-color, #000)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>Ver master plan</span>
+      </div>
+    `
+  }
   render() {
     return this.html`
       ${this.canvas}
+      ${this.renderBack()}
+      ${this.renderZoom()}
     `
   }
 }
