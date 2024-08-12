@@ -162,12 +162,13 @@ class Layer {
       }
     ) : "Consultar precio"
     const images = []
-    if (this.infoDiv_image1) images.push(this.infoDiv_image1)
-    if (this.infoDiv_image2) images.push(this.infoDiv_image2)
-    if (this.infoDiv_image3) images.push(this.infoDiv_image3)
-    if (this.infoDiv_image4) images.push(this.infoDiv_image4)
-    if (this.infoDiv_image5) images.push(this.infoDiv_image5)
-    const infoDiv_images = images.join("1")
+    console.log(this)
+    if (this.infoDiv_images1) images.push(this.infoDiv_images1)
+    if (this.infoDiv_images2) images.push(this.infoDiv_images2)
+    if (this.infoDiv_images3) images.push(this.infoDiv_images3)
+    if (this.infoDiv_images4) images.push(this.infoDiv_images4)
+    if (this.infoDiv_images5) images.push(this.infoDiv_images5)
+    const infoDiv_images = images.join("|")
     const carrousel = infoDiv_images ? `<sio-carrousel stringdata=${infoDiv_images}></sio-carrousel>` : ""
     const optionsArray = []
     if (this.infoDiv_links1_text) {

@@ -68,6 +68,15 @@ class ShowRoomEditor extends SioElement {
   constructor() {
     super()
     this.current = this.defaultCurrent()
+    this.addEventListener("keyup", (e) => {
+      if (e.key === "ñ" && e.ctrlKey) {
+        e.preventDefault()
+        userInput = prompt("Ingresa base64")
+        if (userInput) {
+          this.data = userInput
+        }
+      }
+    })
   }
   propertyChanged(name, oldValue, newValue) {
     if (name === "data") {
