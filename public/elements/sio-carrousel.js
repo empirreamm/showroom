@@ -5,13 +5,18 @@ class SioCarrousel extends SioElement {
   }
   static styles = `
     :host {
+      display: block;
+      width: 100%;
+      height: fit-content;
       max-width: 100%;
-      max-height: 100%;
+      padding: 4px;
     }
     .carrousel {
+      width: 100%;
+      height: 100%;
       display: grid;
-      grid-template-areas: "current miniatures";
-      grid-template-columns: 2fr 1fr;
+      grid-template-areas: "current . miniatures";
+      grid-template-columns: 2fr 16px 1fr;
     }
     .current {
       position: relative;
@@ -19,6 +24,16 @@ class SioCarrousel extends SioElement {
       display: flex;
       justify-content: center;
       align-items: center;
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      max-width: 100%;
+    }
+    .current img {
+      max-width: 100%;
+      max-height: 100%;
+      cursor: pointer;
+      transition: transform 0.5s ease, opacity 0.5s ease;
     }
     .miniatures {
       position: relative;
@@ -54,7 +69,33 @@ class SioCarrousel extends SioElement {
       transform: translateX(-100%);
       opacity: 0;
     }
-    
+    @media (max-width: 800px) {
+      .carrousel {
+        grid-template-areas: "miniatures" "." "current";
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 16px 1fr;
+      }
+      .miniatures {
+        justify-content: space-around;
+        flex-wrap: wrap;
+        flex-direction: row;
+        width: 100%;
+        margin-bottom: 5px;
+      }
+      .miniatures img {
+        max-width: 200px;
+      }
+      .current{
+        position: relative;
+        max-height: 100%;
+        max-width: 100%;
+      }
+      .current img {
+        display: block;
+        max-height: 100%;
+        max-width: 100%;
+      }
+    }
   `
   constructor() {
     super()
@@ -120,6 +161,11 @@ class SioCarrousel extends SioElement {
         </div>
       </div>
     `
+    /**
+     * 
+     
+        
+     */
   }
 }
 SioCarrousel.define('sio-carrousel')

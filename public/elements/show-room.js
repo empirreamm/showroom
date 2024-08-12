@@ -29,11 +29,12 @@ class Layer {
     const img = new Image()
     img.src = this.image
     img.onload = () => {
-      this.image = img
+      this.imageElement = img
       this.canvas.width = img.width
       this.canvas.height = img.height
       this.ctx.drawImage(img, 0, 0)
       this.addColorData()
+      this.emit("loaded")
     }
     this.colorData = hexToRgb(this.color)
     this.originalVisible = this.visible
@@ -55,7 +56,7 @@ class Layer {
     darkenCanvas.width = this.canvas.width
     darkenCanvas.height = this.canvas.height
     const renderCtx = renderCanvas.getContext("2d")
-    const darkenCtx = darkenCanvas.getContext("2d")
+    const darkenCtx = darkenCanvas.getContext("2d", { willReadFrequently: true })
     const data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
     const darkenData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
     const pixels = data.data
@@ -133,7 +134,6 @@ class Layer {
           box-shadow: rgba(0, 0, 0, 0.25) 0px 8px 16px 0px;
           box-sizing: border-box;
           color: rgb(54, 54, 54);
-          display: block;
           font-family: Gotham, sans-serif;
           font-size: 16px;
           font-weight: 400;
@@ -358,7 +358,7 @@ class Layer {
           font-weight: 400;
           line-height: 25.6px;
           margin-block-start: 16px;
-          width: 583px;
+          max-width: 100%;
         }
         .content_${this.id} .optionsSegment{
           margin-bottom: 16px;
@@ -456,9 +456,19 @@ class Layer {
           padding-right: 11.2px;
           padding-top: 8px;
         }
-
         .content_${this.id} .carrouselSegment{
           width: 100%;
+        }
+        @media (max-width: 800px) {
+          .content_${this.id} .infoSegment{
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+          }
+          .content_${this.id} .optionsSegment{
+            flex-direction: column;
+            gap: 16px;
+          }
         }
       </style>
       <div class="content_${this.id}">
@@ -529,10 +539,17 @@ class Layer {
     return this.renderCanvas
   }
   getPositionAlpha(x, y) {
-    if (x == Number.POSITIVE_INFINITY && y == Number.POSITIVE_INFINITY) {
-      return 0
+    if (isNaN(x) || isNaN(y)) return 0
+    try {
+      if (!this.imageElement) return 0
+      if (x == Number.POSITIVE_INFINITY && y == Number.POSITIVE_INFINITY) {
+        return 0
+      }
+      return this.ctx.getImageData(x, y, 1, 1).data[3]
+    } catch (e) {
+      console.log(e)
+      console.log(x, y)
     }
-    return this.ctx.getImageData(x, y, 1, 1).data[3]
   }
   mouseMove(x, y) {
     const currentVisible = this.visible
@@ -592,13 +609,20 @@ class Layer {
 class Scene {
   constructor(options) {
     Object.assign(this, options)
+    let waiting = 0
+    let loaded = 0
     this.layers = options.layers.map(layer => {
+      waiting++
       const l = new Layer(layer)
       l.on("toggle", visible => this.emit("toggle", l, visible))
       l.on("show", () => this.emit("show", l))
       l.on("hide", () => this.emit("hide", l))
       l.on("toggleScene", scene => this.emit("toggleScene", scene))
       l.on("hit", () => this.emit("hit", l))
+      l.on("loaded", () => {
+        loaded++
+        if (loaded == waiting) this.emit("loaded")
+      })
       return l
     })
     this.canvas = document.createElement("canvas")
@@ -690,10 +714,20 @@ class ShowRoom extends SioElement {
       gap: 8px;
 
     }
-
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      color: white;
+      font-weight: bold;
+    }
   `
   constructor() {
     super()
+    this.minZoom = .1
+    this.zoom = .8
     this.current = {}
     this.scenes = []
     this.currentScene = null
@@ -740,13 +774,23 @@ class ShowRoom extends SioElement {
       if (e.key == "ArrowLeft") this.cameraDirection.x = 0
       if (e.key == "ArrowRight") this.cameraDirection.x = 0
       if (e.key == "Escape") this.pause = !this.pause
+      if (e.key == "d") {
+        const sceneCanvas = this.currentScene.render()
+        console.log(sceneCanvas.width < this.canvas.width / this.zoom || sceneCanvas.height < this.canvas.height / this.zoom)
+        console.log(this.currentScene.render())
+        console.log(this.canvas)
+        console.log(this.camera)
+        console.log(this.zoom)
+
+      }
     })
     this.canvas.addEventListener("wheel", e => {
       e.preventDefault()
       e.stopPropagation()
       if (this.onAnimation) return
-      this.zoom -= e.deltaY * .001
-      if (this.zoom < .5) this.zoom = .5
+      const direction = e.deltaY > 0 ? 1 : -1
+      this.zoom -= direction * .1
+      if (this.zoom < this.minZoom) this.zoom = this.minZoom
       if (this.zoom > 1.5) this.zoom = 1.5
     })
     this.canvas.addEventListener("mousedown", this._onPointerDown.bind(this))
@@ -768,12 +812,28 @@ class ShowRoom extends SioElement {
     })
     this.listeners = {}
     this.onAnimation = false
-    this.zoom = .8
+
+  }
+  __getEventPosition(e) {
+    if (e.touches) {
+      const touches = e.touches
+      if (touches.length > 0) {
+        const touch = touches[0]
+        if (!touch.clientX) return { x: 0, y: 0 }
+        if (!touch.clientY) return { x: 0, y: 0 }
+        return {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        }
+      }
+    }
+    return { x: e.clientX, y: e.clientY }
   }
   _onPointerDown(e) {
     if (!this.currentScene) return
-    const eventX = e.clientX || e.touches[0].clientX
-    const eventY = e.clientY || e.touches[0].clientY
+    this, this.__getEventPosition(e)
+    const eventX = this.__getEventPosition(e).x
+    const eventY = this.__getEventPosition(e).y
     this.mousePositionToCanvas(eventX, eventY)
     e.stopPropagation()
     if (this.onAnimation) return
@@ -784,9 +844,8 @@ class ShowRoom extends SioElement {
     if (!this.currentScene) return
     e.stopPropagation()
     if (this.onAnimation) return
-    const eventX = e.clientX || e.touches[0].clientX
-    const eventY = e.clientY || e.touches[0].clientY
-    console.log(eventX, eventY)
+    const eventX = this.__getEventPosition(e).x
+    const eventY = this.__getEventPosition(e).y
     this.mousePositionToCanvas(eventX, eventY)
     if (!this.drag) {
       const worldPosition = this.screenToWorld(this.mouse.x, this.mouse.y)
@@ -801,8 +860,8 @@ class ShowRoom extends SioElement {
   }
   _onPointerUp(e) {
     if (!this.currentScene) return
-    const eventX = e.clientX || e.changedTouches[0].clientX
-    const eventY = e.clientY || e.changedTouches[0].clientY
+    const eventX = this.__getEventPosition(e).x
+    const eventY = this.__getEventPosition(e).y
     this.mousePositionToCanvas(eventX, eventY)
     e.stopPropagation()
     e.stopPropagation()
@@ -843,10 +902,15 @@ class ShowRoom extends SioElement {
       this.requestUpdate()
       return
     }
+    this.loading = "Cargando..."
+    this.requestUpdate()
     const unbase64 = atob(value)
     const data = JSON.parse(unbase64)
     this.current = data
+    let waiting = 0
+    let loaded = 0
     this.scenes = data.scenes.map(scene => {
+      waiting++
       const s = new Scene(scene)
       s.on("toggle", (layer, visible) => {
         this.emit("toggle", s, layer, visible)
@@ -866,9 +930,20 @@ class ShowRoom extends SioElement {
       s.on("toggleScene", scene => {
         this.openScene(scene)
       })
+      s.on("loaded", () => {
+        loaded++
+        this.loading = `${loaded * 100 / waiting}%`
+        console.log(this.loading)
+        this.requestUpdate()
+        if (loaded == waiting) {
+          this.loading = false
+          this.requestUpdate()
+        }
+      })
       return s
     })
     this.currentScene = this.scenes[0]
+    this.requestUpdate()
   }
 
   backScene() {
@@ -880,8 +955,8 @@ class ShowRoom extends SioElement {
     this.currentScene.mouseMove(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY)
     const newScene = this.scenes.find(s => s.id === scene)
     if (!newScene) return
+    this.calculateCanvasSize()
     this.currentScene = newScene
-    console.log("toggleScene", newScene)
     if (newScene.back) {
       this.setAttribute("back", true)
     } else {
@@ -891,13 +966,28 @@ class ShowRoom extends SioElement {
   }
 
   centerScene() {
-    // if (!this.currentScene) return requestAnimationFrame(() => this.centerScene())
-    // this.camera = { x: -1 * this.currentScene.canvas.width / 2, y: -1 * this.currentScene.canvas.height / 2 }
+    if (!this.currentScene) return requestAnimationFrame(() => this.centerScene())
+    const currentScene = this.currentScene.render()
+    if (currentScene.width < this.canvas.width / this.zoom || currentScene.height < this.canvas.height / this.zoom) {
+      if (currentScene.width < this.canvas.width / this.zoom) {
+        this.camera.x = this.canvas.width / 2 - currentScene.width * this.zoom / 2
+      }
+      if (currentScene.height < this.canvas.height / this.zoom) {
+        this.camera.y = this.canvas.height / 2 - currentScene.height * this.zoom / 2
+      }
+      if (this.camera.x > 0) this.camera.x = 0
+      if (this.camera.y > 0) this.camera.y = 0
+      return
+    }
   }
-  mousePositionToCanvas(x, y) {
+  calculateCanvasSize() {
     const canvasPosition = this.canvas.getBoundingClientRect()
     this.canvas.width = canvasPosition.width
     this.canvas.height = canvasPosition.height
+    return canvasPosition
+  }
+  mousePositionToCanvas(x, y) {
+    const canvasPosition = this.calculateCanvasSize()
     this.mouse = { x: x - canvasPosition.x, y: y - canvasPosition.y }
     return this.mouse
   }
@@ -915,6 +1005,27 @@ class ShowRoom extends SioElement {
     const canvasHeight = this.canvas.height / this.zoom
     const cameraX = this.camera.x * -1 / this.zoom
     const cameraY = this.camera.y * -1 / this.zoom
+    if (sceneCanvas.width < this.canvas.width / this.zoom || sceneCanvas.height < this.canvas.height / this.zoom) {
+      if (sceneCanvas.width < this.canvas.width / this.zoom) {
+        this.camera.x = this.canvas.width / 2 - sceneCanvas.width * this.zoom / 2
+        if (sceneCanvas.height > canvasHeight) {
+          if (this.camera.y > 0) this.camera.y = 0
+          if (cameraY + canvasHeight > sceneCanvas.height) this.camera.y -= sceneCanvas.height - (cameraY + canvasHeight)
+        }
+      }
+      if (sceneCanvas.height < this.canvas.height / this.zoom) {
+        this.camera.y = this.canvas.height / 2 - sceneCanvas.height * this.zoom / 2
+        if (sceneCanvas.width > canvasWidth) {
+          if (this.camera.x > 0) this.camera.x = 0
+          if (cameraX + canvasWidth > sceneCanvas.width) this.camera.x -= sceneCanvas.width - (cameraX + canvasWidth)
+        }
+      }
+
+
+      return
+    }
+
+
 
     if (sceneCanvas.width < canvasWidth) this.camera.x = 0
     if (sceneCanvas.height < canvasHeight) this.camera.y = 0
@@ -934,16 +1045,19 @@ class ShowRoom extends SioElement {
     this.calculateCamera(delta, sceneCanvas)
 
     this.ctx.resetTransform()
+    this.ctx.fillStyle = "black"
+    this.ctx.rect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.fill()
     this.ctx.translate(this.camera.x, this.camera.y)
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.ctx.clearRect(sceneCanvas.width * -1, sceneCanvas.height * -1, sceneCanvas.width, sceneCanvas.height)
     this.ctx.scale(this.zoom, this.zoom)
     this.ctx.drawImage(sceneCanvas, 0, 0)
     requestAnimationFrame(() => this.animate())
   }
   firstRendered() {
+    this.calculateCanvasSize()
     this.animate()
     this.centerScene()
+
   }
   zoomIn() {
     this.zoom += .1
@@ -951,7 +1065,7 @@ class ShowRoom extends SioElement {
   }
   zoomOut() {
     this.zoom -= .1
-    if (this.zoom < .5) this.zoom = .5
+    if (this.zoom < this.minZoom) this.zoom = this.minZoom
   }
   renderZoom() {
     return this.html`
@@ -973,6 +1087,9 @@ class ShowRoom extends SioElement {
     `
   }
   render() {
+    if (this.loading) {
+      return this.html`<div class="loading">${this.loading}</div>`
+    }
     return this.html`
       ${this.canvas}
       ${this.renderBack()}

@@ -105,6 +105,10 @@ class SioDialog extends SioElement {
       e.preventDefault()
     }
     this._open = true
+    const found = this.root.querySelector("dialog")
+    if (!found) {
+      return requestAnimationFrame(() => this.showModal())
+    }
     this.root.querySelector("dialog").showModal()
     document.body.inert = true
     document.body.style.overflow = "hidden"
