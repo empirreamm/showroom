@@ -161,7 +161,14 @@ class Layer {
         thousandSeparator: true
       }
     ) : "Consultar precio"
-    const carrousel = this.infoDiv_images ? `<sio-carrousel stringdata=${this.infoDiv_images}></sio-carrousel>` : ""
+    const images = []
+    if (this.infoDiv_image1) images.push(this.infoDiv_image1)
+    if (this.infoDiv_image2) images.push(this.infoDiv_image2)
+    if (this.infoDiv_image3) images.push(this.infoDiv_image3)
+    if (this.infoDiv_image4) images.push(this.infoDiv_image4)
+    if (this.infoDiv_image5) images.push(this.infoDiv_image5)
+    const infoDiv_images = images.join("1")
+    const carrousel = infoDiv_images ? `<sio-carrousel stringdata=${infoDiv_images}></sio-carrousel>` : ""
     const optionsArray = []
     if (this.infoDiv_links1_text) {
       optionsArray.push(

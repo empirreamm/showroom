@@ -340,7 +340,31 @@ class ShowRoomEditor extends SioElement {
       </div>
       <div class="input-container">
         <label>Imagenes:</label>
-        <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_images").bind(this)} value="${layer.infoDiv_images || ""}" />
+        <div class="input-container">
+          <label>Imagen 1:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_images1").bind(this)} value="${layer.infoDiv_images1 || ""}" />
+          <p>Imagen actual: ${layer.infoDiv_images1}</p>
+        </div>
+        <div class="input-container">
+          <label>Imagen 2:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_images2").bind(this)} value="${layer.infoDiv_images2 || ""}" />
+          <p>Imagen actual: ${layer.infoDiv_images2}</p>
+        </div>
+        <div class="input-container">
+          <label>Imagen 3:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_images3").bind(this)} value="${layer.infoDiv_images3 || ""}" />
+          <p>Imagen actual: ${layer.infoDiv_images3}</p>
+        </div>
+        <div class="input-container">
+          <label>Imagen 4:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_images4").bind(this)} value="${layer.infoDiv_images4 || ""}" />
+          <p>Imagen actual: ${layer.infoDiv_images4}</p>
+        </div>
+        <div class="input-container">
+          <label>Imagen 5:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_images5").bind(this)} value="${layer.infoDiv_images5 || ""}" />
+          <p>Imagen actual: ${layer.infoDiv_images5}</p>
+        </div>
       </div>
     `
     return this.html`
