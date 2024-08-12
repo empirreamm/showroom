@@ -35,30 +35,30 @@
 <body>
 
   <show-room></show-room>
-  <!-- <show-room-editor></show-room-editor> -->
+  <show-room-editor></show-room-editor>
   <script type="module">
     import '/elements/show-room.js'
     import '/elements/show-room-editor.js'
 
     const data = await fetch("/data.sr").then(r => r.text())
-    // const sre = document.querySelector('show-room-editor')
+    const sre = document.querySelector('show-room-editor')
     const sr = document.querySelector('show-room')
-    // sre.data = data
+    sre.data = data
     sr.data = data
 
-    // sre.addEventListener('save', async (e) => {
-    //   console.log(e.detail)
-    //   await fetch("/save", {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({
-    //       data: e.detail
-    //     })
-    //   })
-    //   sr.data = e.detail
-    // })
+    sre.addEventListener('save', async (e) => {
+      console.log(e.detail)
+      await fetch("/save", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: e.detail
+        })
+      })
+      sr.data = e.detail
+    })
 
   </script>
 </body>

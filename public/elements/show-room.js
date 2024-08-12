@@ -162,19 +162,29 @@ class Layer {
       }
     ) : "Consultar precio"
     const carrousel = this.infoDiv_images ? `<sio-carrousel stringdata=${this.infoDiv_images}></sio-carrousel>` : ""
-    const options = this.infoDiv_links?.split("|").map(
-      link => {
-        const [text, url, color] = link.split("<>")
-        const backgroundColor = color == "primary" ? "#fff" : color == "secondary" ? "rgb(153, 192, 140)" : "#00f0"
-        const colorText = color == "secondary" ? "#fff" : "#000"
-        const border = color == "primary" ? "1px solid #000" : "0px!important"
-        const padding = !["primary", "secondary"].includes(color) ? "0px!important" : "8px"
-        const boxshadow = !["primary", "secondary"].includes(color) ? "0px 0px 0px 0px!important" : "auto"
-        const margin = !["primary", "secondary"].includes(color) ? "0px!important" : "auto"
-        const textDecoration = !["primary", "secondary"].includes(color) ? "underline" : "none"
-        return `<a href="${url}" class="option" style="background-color: ${backgroundColor}; color: ${colorText}; border: ${border}; padding:${padding}; box-shadow:${boxshadow};margin:${margin};text-decoration:${textDecoration};">${text}</a>`
-      }
-    ).join("") || ""
+    const optionsArray = []
+    if (this.infoDiv_links1_text) {
+      optionsArray.push(
+        `
+          <a href="${this.infoDiv_links1_url}" class="option" style="background-color: #fff; color: #000; border: 1px solid #000; padding:8px; box-shadow:auto;margin:auto;text-decoration:none;">${this.infoDiv_links1_text}</a>
+        `
+      )
+    }
+    if (this.infoDiv_links2_text) {
+      optionsArray.push(
+        `
+          <a href="${this.infoDiv_links2_url}" class="option" style="background-color: rgb(153, 192, 140); color: #fff; border: 1px solid #000; padding:8px; box-shadow:auto;margin:auto;text-decoration:none;">${this.infoDiv_links2_text}</a>
+        `
+      )
+    }
+    if (this.infoDiv_links3_text) {
+      optionsArray.push(
+        `
+          <a href="${this.infoDiv_links3_url}" class="option" style="background-color: #00f0; color: #000; border: 0px!important; padding:0px!important; box-shadow:0px 0px 0px 0px!important;margin:0px!important;text-decoration:underline;">${this.infoDiv_links3_text}</a>
+        `
+      )
+    }
+    const options = optionsArray.join("")
     dialog.innerHTML = `
       <style>
         .content_${this.id} {

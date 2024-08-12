@@ -306,8 +306,37 @@ class ShowRoomEditor extends SioElement {
         <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_description").bind(this)} value="${layer.infoDiv_description || ""}" />
       </div>
       <div class="input-container">
-        <label>Links:</label>
-        <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links").bind(this)} value="${layer.infoDiv_links || ""}" />
+        <label>Link 1:</label>
+        <div class="input-container">
+          <label>Texto 1:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links1_text").bind(this)} value="${layer.infoDiv_links1_text || ""}" />
+        </div>
+        <div class="input-container">
+          <label>URL 1:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links1_url").bind(this)} value="${layer.infoDiv_links1_url || ""}" />
+        </div>
+      </div>
+      <div class="input-container">
+        <label>Link 2:</label>
+        <div class="input-container">
+          <label>Texto 2:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links2_text").bind(this)} value="${layer.infoDiv_links2_text || ""}" />
+        </div>
+        <div class="input-container">
+          <label>URL 2:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links2_url").bind(this)} value="${layer.infoDiv_links2_url || ""}" />
+        </div>
+      </div>
+      <div class="input-container">
+        <label>Link 3:</label>
+        <div class="input-container">
+          <label>Texto 3:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links3_text").bind(this)} value="${layer.infoDiv_links3_text || ""}" />
+        </div>
+        <div class="input-container">
+          <label>URL 3:</label>
+          <input type="text" ?disabled=${index === 0 ? "disabled" : null} @change=${this._onValueChange(scene.id, layer.id, "infoDiv_links3_url").bind(this)} value="${layer.infoDiv_links3_url || ""}" />
+        </div>
       </div>
       <div class="input-container">
         <label>Imagenes:</label>
@@ -325,8 +354,8 @@ class ShowRoomEditor extends SioElement {
           <div class="input-container">
             <label>Imagen:</label>
             <input type="file" accept="image/*" @change=${this._onImageChange(scene.id, layer.id)} />
+            <p>Imagen actual: ${layer.image}</p>
           </div>
-          <img src="${layer.image}" />
         </div>
         <div class="input-container">
           <label>Visible:</label>
