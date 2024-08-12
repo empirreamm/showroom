@@ -745,7 +745,7 @@ class ShowRoom extends SioElement {
   constructor() {
     super()
     this.minZoom = .1
-    this.zoom = .8
+    this.zoom = .5
     this.current = {}
     this.scenes = []
     this.currentScene = null

@@ -1,4 +1,4 @@
-import SioElement from "/sio/SioElement.js"
+import SioElement from "../sio/SioElement.js"
 const uuid = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 class ShowRoomEditor extends SioElement {
   static properties = {
@@ -68,13 +68,13 @@ class ShowRoomEditor extends SioElement {
   constructor() {
     super()
     this.current = this.defaultCurrent()
+    this.pastebase64 = false
     this.addEventListener("keyup", (e) => {
       if (e.key === "ñ" && e.ctrlKey) {
         e.preventDefault()
-        userInput = prompt("Ingresa base64")
-        if (userInput) {
-          this.data = userInput
-        }
+        console.log("Paste base64")
+        this.pastebase64 = true
+        this.requestUpdate()
       }
     })
   }
@@ -251,6 +251,14 @@ class ShowRoomEditor extends SioElement {
       }
       this.updateLayerInfo(sceneId, layerId, key, value)
     }
+  }
+
+  _pastedB64(e) {
+    const value = e.target.previousElementSibling.value
+    this.data = value
+    this.pastebase64 = false
+    this.save()
+    this.requestUpdate()
   }
   defaultCurrent() {
     return {
@@ -452,6 +460,15 @@ class ShowRoomEditor extends SioElement {
     `
   }
   render() {
+    if (this.pastebase64) {
+      return this.html`
+        <div class="input-container">
+          <label>Base64:</label>
+          <textarea @change=${(e) => this._pastedB64.bind(this)}></textarea>
+          <button @click=${this._pastedB64.bind(this)}>Guardar</button>
+        </div>
+      `
+    }
     return this.html`
       <h1> Room Editor</h1>
       ${this.renderScenes()}

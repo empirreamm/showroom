@@ -1,4 +1,4 @@
-import SioElement from "/sio/SioElement.js"
+import SioElement from "../sio/SioElement.js"
 
 class SioDialog extends SioElement {
   static styles = `
